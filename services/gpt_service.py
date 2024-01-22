@@ -3,6 +3,7 @@ import logging
 
 import g4f
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletion
 
 from constants.gpt_constants import *
 
@@ -51,12 +52,12 @@ class GptService:
         return await self.get_chat_response(content)
 
     async def __openai_request(self, content: list[dict[str, str]]) -> str:
-        response = await self.openai_client.chat.completions.create(
+        response: ChatCompletion = await self.openai_client.chat.completions.create(
             **OPENAI_REQUEST_OPTIONS,
             messages=content
         )
 
-        return response['choices'][0]['message']['content']
+        return response.choices[0].message.content
 
     def __init_logger(self):
         self.__logger = logging.getLogger(__name__)
