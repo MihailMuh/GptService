@@ -1,0 +1,21 @@
+### Python ###
+venv/
+__pycache__/
+
+### VS Code ###
+.vscode/
+.vs/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+*.sh
+*.properties
+*.json
+*.xml
+*.env
+*.xlsx
+*.mp3
+*.wav
