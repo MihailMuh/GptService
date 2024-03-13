@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
+from starlette.responses import PlainTextResponse
 from uvicorn import run
 
 from constants.server_constants import *
@@ -21,17 +21,17 @@ async def lifespan(app: FastAPI):
 logging.basicConfig(format="%(asctime)s %(levelname)s %(funcName)s() --> %(message)s")
 
 gpt_service: GptService
-app: FastAPI = FastAPI(default_response_class=ORJSONResponse, lifespan=lifespan)
+app: FastAPI = FastAPI(default_response_class=PlainTextResponse, lifespan=lifespan)
 
 
 @app.post("/completion/single")
 async def completion(request: GptSingleRequest) -> str:
-    return await gpt_service.get_single_response(request.content)
+    return await gpt_service.get_single_response(request.content, request.model)
 
 
 @app.post("/completion/chat")
 async def completion(request: GptChatRequest) -> str:
-    return await gpt_service.get_chat_response(request.content)
+    return await gpt_service.get_chat_response(request.content, request.model)
 
 
 if __name__ == '__main__':

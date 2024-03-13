@@ -1,7 +1,5 @@
-import datetime
 import logging
 
-import g4f
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
 
@@ -15,49 +13,21 @@ class GptService:
         self.openai_client = AsyncOpenAI(
             api_key=OPENAI_API_KEY,
         )
-        self.banned_time = None
-        self.is_banned = False
 
-    async def get_single_response(self, message: str) -> str:
-        return await self.get_chat_response([{"role": "system", "content": message}])
+    async def get_single_response(self, message: str, model: str) -> str:
+        return await self.get_chat_response([{"role": "system", "content": message}], model)
 
-    async def get_chat_response(self, content: list[dict[str, str]]) -> str:
+    async def get_chat_response(self, content: list[dict[str, str]], model: str) -> str:
         self.__logger.debug(f"Questions to ask: {content}")
 
-        if self.is_banned:
-            if (datetime.datetime.now() - self.banned_time).total_seconds() >= 600:
-                self.is_banned = False
-            else:
-                response: str = await self.__openai_request(content)
-                self.__logger.debug(f"OpenAi Response: {response}")
-                return response
-
-        try:
-            response: str = await g4f.ChatCompletion.create_async(
-                model="gpt-4",
-                messages=content,
-                provider=g4f.Provider.Bing,
-            )
-
-            self.__logger.debug(f"Bing Response: {response}")
-            return response
-
-        except Exception as e:
-            self.__logger.error(e)
-            self.__logger.error("Error in bing. Pausing for 10 minutes...")
-
-            self.banned_time = datetime.datetime.now()
-            self.is_banned = True
-
-        return await self.get_chat_response(content)
-
-    async def __openai_request(self, content: list[dict[str, str]]) -> str:
         response: ChatCompletion = await self.openai_client.chat.completions.create(
-            **OPENAI_REQUEST_OPTIONS,
+            **OPENAI_REQUEST_OPTIONS | {"model": model},
             messages=content
         )
+        response_str: str = response.choices[0].message.content
 
-        return response.choices[0].message.content
+        self.__logger.debug(f"OpenAi Response: {response_str}")
+        return response_str
 
     def __init_logger(self):
         self.__logger = logging.getLogger(__name__)
